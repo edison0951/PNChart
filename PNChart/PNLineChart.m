@@ -143,7 +143,7 @@
         for (int index = 0; index < yLabels.count; index++) {
             labelText = yLabels[(NSUInteger) index];
 
-            NSInteger y = (NSInteger) (_chartCavanHeight + _chartMarginTop - index * yStepHeight);
+            NSInteger y = (NSInteger) (_chartCavanHeight + _chartMarginTop - yStepHeight / 2 - index * yStepHeight);
 
             PNChartLabel *label = [[PNChartLabel alloc] initWithFrame:CGRectMake(0.0, y - (NSInteger) _chartMarginBottom / 2, (CGFloat) ((NSInteger) _chartMarginLeft * 0.9), (NSInteger) _yLabelHeight)];
             [label setTextAlignment:NSTextAlignmentRight];
@@ -749,7 +749,7 @@ andProgressLinePathsColors:(NSMutableArray *)progressLinePathsColors {
 
 - (void)drawRect:(CGRect)rect {
     if (self.isShowCoordinateAxis) {
-        CGFloat yAxisOffset = 10.f;
+        CGFloat yAxisOffset = _xLabelWidth/2;
 
         CGContextRef ctx = UIGraphicsGetCurrentContext();
         UIGraphicsPopContext();
@@ -783,7 +783,7 @@ andProgressLinePathsColors:(NSMutableArray *)progressLinePathsColors {
             // draw x axis separator
             CGPoint point;
             for (NSUInteger i = 0; i < [self.xLabels count]; i++) {
-                point = CGPointMake(2 * _chartMarginLeft + (i * _xLabelWidth), _chartMarginBottom + _chartCavanHeight);
+                point = CGPointMake(_chartMarginLeft + yAxisOffset + (i * _xLabelWidth), _chartMarginBottom + _chartCavanHeight);
                 CGContextMoveToPoint(ctx, point.x, point.y - 2);
                 CGContextAddLineToPoint(ctx, point.x, point.y);
                 CGContextStrokePath(ctx);
@@ -791,8 +791,8 @@ andProgressLinePathsColors:(NSMutableArray *)progressLinePathsColors {
 
             // draw y axis separator
             CGFloat yStepHeight = _chartCavanHeight / _yLabelNum;
-            for (NSUInteger i = 0; i < [self.xLabels count]; i++) {
-                point = CGPointMake(_chartMarginBottom + yAxisOffset, (_chartCavanHeight - i * yStepHeight + _yLabelHeight / 2));
+            for (NSUInteger i = 0; i < [self.yLabels count]; i++) {
+                point = CGPointMake(_chartMarginBottom + yAxisOffset, (_chartMarginTop + _chartCavanHeight - _yLabelHeight - i * yStepHeight));
                 CGContextMoveToPoint(ctx, point.x, point.y);
                 CGContextAddLineToPoint(ctx, point.x + 2, point.y);
                 CGContextStrokePath(ctx);
@@ -817,16 +817,16 @@ andProgressLinePathsColors:(NSMutableArray *)progressLinePathsColors {
     }
     if (self.showYGridLines) {
         CGContextRef ctx = UIGraphicsGetCurrentContext();
-        CGFloat yAxisOffset = _showLabel ? 10.f : 0.0f;
         CGPoint point;
         CGFloat yStepHeight = _chartCavanHeight / _yLabelNum;
+        CGFloat yAxisOffset = _showLabel ? yStepHeight/2 : 0.0f;
         if (self.yGridLinesColor) {
             CGContextSetStrokeColorWithColor(ctx, self.yGridLinesColor.CGColor);
         } else {
             CGContextSetStrokeColorWithColor(ctx, [UIColor lightGrayColor].CGColor);
         }
         for (NSUInteger i = 0; i < _yLabelNum; i++) {
-            point = CGPointMake(_chartMarginLeft + yAxisOffset, (_chartCavanHeight - i * yStepHeight + _yLabelHeight / 2));
+            point = CGPointMake(_chartMarginLeft + yAxisOffset, (_chartMarginTop + _chartCavanHeight - _yLabelHeight - i * yStepHeight));
             CGContextMoveToPoint(ctx, point.x, point.y);
             // add dotted style grid
             CGFloat dash[] = {6, 5};
@@ -855,7 +855,7 @@ andProgressLinePathsColors:(NSMutableArray *)progressLinePathsColors {
     } else {
         innerGrade = ((CGFloat) y - _yValueMin) / (_yValueMax - _yValueMin);
     }
-    CGFloat projection = _chartCavanHeight - (innerGrade * _chartCavanHeight) - (_yLabelHeight / 2) + _chartMarginTop;
+    CGFloat projection = _chartCavanHeight + _chartMarginTop - _yLabelHeight - (innerGrade * (_yLabelHeight * (_yLabelNum - 1)));
     return projection;
 }
 
